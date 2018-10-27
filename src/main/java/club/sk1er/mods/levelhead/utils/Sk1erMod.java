@@ -2,20 +2,21 @@ package club.sk1er.mods.levelhead.utils;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mojang.realmsclient.gui.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreenBook;
-import net.minecraft.event.ClickEvent;
-import net.minecraft.event.HoverEvent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemWritableBook;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.event.ClickEvent;
+import net.minecraft.util.text.event.HoverEvent;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.FMLClientHandler;
@@ -45,7 +46,7 @@ public class Sk1erMod {
      */
     private static Sk1erMod instance;
     private boolean first = false;
-    private List<IChatComponent> updateMessage = new ArrayList<>();
+    private List<ITextComponent> updateMessage = new ArrayList<>();
     private String modid;
     private String version;
     private boolean enabled = true;
@@ -56,7 +57,7 @@ public class Sk1erMod {
     private JsonHolder en;
     private boolean hypixel;
     private GenKeyCallback callback;
-    private ConcurrentLinkedQueue<IChatComponent> messages = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<ITextComponent> messages = new ConcurrentLinkedQueue<>();
     private boolean bookUser = false;
     private boolean firstFileStatus = false;
     private File dir;
@@ -67,7 +68,7 @@ public class Sk1erMod {
         this.version = version;
         this.name = name;
         instance = this;
-        prefix = EnumChatFormatting.RED + "[" + EnumChatFormatting.AQUA + this.name + EnumChatFormatting.RED + "]" + EnumChatFormatting.YELLOW + ": ";
+        prefix = ChatFormatting.RED + "[" + ChatFormatting.AQUA + this.name + ChatFormatting.RED + "]" + ChatFormatting.YELLOW + ": ";
         MinecraftForge.EVENT_BUS.register(this);
         File mcDataDir = Minecraft.getMinecraft().mcDataDir;
 
@@ -101,7 +102,7 @@ public class Sk1erMod {
         return true;
     }
 
-    public List<IChatComponent> getUpdateMessage() {
+    public List<ITextComponent> getUpdateMessage() {
         return updateMessage;
     }
 
@@ -110,16 +111,16 @@ public class Sk1erMod {
     }
 
     public void sendMessage(String message) {
-        this.messages.add(new ChatComponentText(prefix + message));
+        this.messages.add(new TextComponentString(prefix + message));
     }
 
     @SubscribeEvent
     public void tick(TickEvent.RenderTickEvent event) {
 
 
-        if (Minecraft.getMinecraft().thePlayer == null) return;
+        if (Minecraft.getMinecraft().player == null) return;
         while (!messages.isEmpty()) {
-            Minecraft.getMinecraft().thePlayer.addChatComponentMessage(messages.poll());
+            Minecraft.getMinecraft().player.sendMessage(messages.poll());
         }
         if(book){
             book=false;
@@ -194,7 +195,7 @@ public class Sk1erMod {
                 FMLClientHandler.instance().getClient().getCurrentServerData().serverName.equalsIgnoreCase("HYPIXEL"));
         if (hasUpdate() || first) {
             Multithreading.runAsync(() -> {
-                while (Minecraft.getMinecraft().thePlayer == null) {
+                while (Minecraft.getMinecraft().player == null) {
                     try {
                         Thread.sleep(100L);
                     } catch (InterruptedException e) {
@@ -215,8 +216,8 @@ public class Sk1erMod {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                for (IChatComponent s : getUpdateMessage()) {
-                    Minecraft.getMinecraft().thePlayer.addChatComponentMessage(s);
+                for (ITextComponent s : getUpdateMessage()) {
+                    Minecraft.getMinecraft().player.sendMessage(s);
                 }
             });
         }
@@ -235,45 +236,45 @@ public class Sk1erMod {
         tagCompound.setString("title", "Welcome to my mods");
 
         NBTTagList nbtTagList = new NBTTagList();
-        ChatComponentText text = new ChatComponentText("Hello!\n");
-        ChatStyle helloStyle = new ChatStyle();
+        TextComponentString text = new TextComponentString("Hello!\n");
+        Style helloStyle = new Style();
         helloStyle.setBold(true);
-        helloStyle.setColor(EnumChatFormatting.RED);
-        text.setChatStyle(helloStyle);
+        helloStyle.setColor(TextFormatting.RED);
+        text.setStyle(helloStyle);
 
-        ChatComponentText next1 = new ChatComponentText("Thank you for downloading one of my mods. Please consider ");
-        ChatStyle next1Style = new ChatStyle();
-        next1Style.setColor(EnumChatFormatting.RED);
+        TextComponentString next1 = new TextComponentString("Thank you for downloading one of my mods. Please consider ");
+        Style next1Style = new Style();
+        next1Style.setColor(TextFormatting.RED);
         next1Style.setBold(false);
-        next1.setChatStyle(next1Style);
+        next1.setStyle(next1Style);
         text.appendSibling(next1);
 
 
-        ChatComponentText valueIn = new ChatComponentText("Click to open URL. Then click \"subscribe\"");
-        ChatStyle style2 = new ChatStyle();
-        style2.setColor(EnumChatFormatting.RED);
+        TextComponentString valueIn = new TextComponentString("Click to open URL. Then click \"subscribe\"");
+        Style style2 = new Style();
+        style2.setColor(TextFormatting.RED);
         style2.setBold(true);
-        valueIn.setChatStyle(style2);
+        valueIn.setStyle(style2);
 
 
-        ChatComponentText next2 = new ChatComponentText("Subscribing to the mod creator");
-        ChatStyle next2Style = new ChatStyle();
+        TextComponentString next2 = new TextComponentString("Subscribing to the mod creator");
+        Style next2Style = new Style();
         next2Style.setBold(true);
         next2Style.setUnderlined(true);
-        next2Style.setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://sk1er.club/sub"));
-        next1Style.setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://sk1er.club/sub"));
-        helloStyle.setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://sk1er.club/sub"));
-        next2Style.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, valueIn));
-        next2Style.setColor(EnumChatFormatting.GREEN);
+        next2Style.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://sk1er.club/sub"));
+        next1Style.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://sk1er.club/sub"));
+        helloStyle.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://sk1er.club/sub"));
+        next2Style.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, valueIn));
+        next2Style.setColor(TextFormatting.GREEN);
 
-        next2.setChatStyle(next2Style);
+        next2.setStyle(next2Style);
 
         text.appendSibling(next2);
 
-        nbtTagList.appendTag(new NBTTagString(IChatComponent.Serializer.componentToJson(text)));
+        nbtTagList.appendTag(new NBTTagString(ITextComponent.Serializer.componentToJson(text)));
         tagCompound.setTag("pages", nbtTagList);
         book.setTagCompound(tagCompound);
-        GuiScreenBook screenBook = new GuiScreenBook(Minecraft.getMinecraft().thePlayer, book, false);
+        GuiScreenBook screenBook = new GuiScreenBook(Minecraft.getMinecraft().player, book, false);
         Minecraft.getMinecraft().displayGuiScreen(screenBook);
     }
     @SubscribeEvent

@@ -43,7 +43,7 @@ public class Levelhead {
     /*
         Hello !
      */
-    public static final String MODID = "LEVEL_HEAD";
+    public static final String MODID = "level_head";
     public static final String VERSION = "5.0";
     private static Levelhead instance;
     public Map<UUID, LevelheadTag> levelCache = new HashMap<>();
@@ -127,15 +127,15 @@ public class Levelhead {
             return false;
 
         for (PotionEffect effect : player.getActivePotionEffects()) { // TODO - Method obfuscated (PORTING REQUIRED)
-            if (effect.getPotionID() == 14)
+            if (effect.getPotion().getName().equalsIgnoreCase("invisibily"))
                 return false;
         }
         if (!renderFromTeam(player))
             return false;
-        if (player.riddenByEntity != null)
+        if (player.isBeingRidden())
             return false;
         int min = Math.min(64 * 64, config.getRenderDistance() * config.getRenderDistance());
-        if (player.getDistanceSqToEntity(Minecraft.getMinecraft().thePlayer) > min) {
+        if (player.getDistanceSq(Minecraft.getMinecraft().player) > min) {
             return false;
         }
         if (!existedMorethan5Seconds.contains(player.getUniqueID())) {
@@ -145,7 +145,7 @@ public class Levelhead {
         if (player.hasCustomName() && player.getCustomNameTag().isEmpty()) {
             return false;
         }
-        if (player.isInvisible() || player.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
+        if (player.isInvisible() || player.isInvisibleToPlayer(Minecraft.getMinecraft().player))
             return false;
         if (player.isSneaking())
             return false;
@@ -156,7 +156,7 @@ public class Levelhead {
 
     private boolean renderFromTeam(EntityPlayer player) {
         Team team = player.getTeam();
-        Team team1 = Minecraft.getMinecraft().thePlayer.getTeam();
+        Team team1 = Minecraft.getMinecraft().player.getTeam();
 
         if (team != null) {
             Team.EnumVisible enumVisible = team.getNameTagVisibility();
@@ -184,7 +184,7 @@ public class Levelhead {
             return;
         }
         Minecraft mc = Minecraft.getMinecraft();
-        if (!mc.isGamePaused() && mc.thePlayer != null && mc.theWorld != null) {
+        if (!mc.isGamePaused() && mc.player != null && mc.world != null) {
             if (System.currentTimeMillis() < waitUntil) {
                 if (updates > 0) {
                     updates = 0;
@@ -192,7 +192,7 @@ public class Levelhead {
                 return;
             }
 
-            for (EntityPlayer entityPlayer : mc.theWorld.playerEntities) {
+            for (EntityPlayer entityPlayer : mc.world.playerEntities) {
                 if (!existedMorethan5Seconds.contains(entityPlayer.getUniqueID())) {
                     if (!timeCheck.containsKey(entityPlayer.getUniqueID()))
                         timeCheck.put(entityPlayer.getUniqueID(), 0);
@@ -200,7 +200,7 @@ public class Levelhead {
                     if (old > 100) {
                         if (!existedMorethan5Seconds.contains(entityPlayer.getUniqueID()))
                             existedMorethan5Seconds.add(entityPlayer.getUniqueID());
-                    } else if (!entityPlayer.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
+                    } else if (!entityPlayer.isInvisibleToPlayer(Minecraft.getMinecraft().player))
                         timeCheck.put(entityPlayer.getUniqueID(), old + 1);
                 }
 
@@ -292,7 +292,7 @@ public class Levelhead {
         footerObj.merge(getFooterConfig().put("footer", object.optString("strlevel", format.format(object.getInt("level")))), false);
 
         //Ensure text values are present
-        construct.put("exclude",object.optBoolean("exclude"));
+        construct.put("exclude", object.optBoolean("exclude"));
         construct.put("header", headerObj).put("footer", footerObj);
         value.construct(construct);
         return value;
@@ -332,7 +332,7 @@ public class Levelhead {
     private void clearCache() {
         if (levelCache.size() > Math.max(config.getPurgeSize(), 150)) {
             ArrayList<UUID> safePlayers = new ArrayList<>();
-            for (EntityPlayer player : Minecraft.getMinecraft().theWorld.playerEntities) {
+            for (EntityPlayer player : Minecraft.getMinecraft().world.playerEntities) {
                 if (existedMorethan5Seconds.contains(player.getUniqueID())) {
                     safePlayers.add(player.getUniqueID());
                 }

@@ -13,11 +13,11 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
-import net.minecraft.event.ClickEvent;
-import net.minecraft.event.HoverEvent;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.event.ClickEvent;
+import net.minecraft.util.text.event.HoverEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.config.GuiSlider;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -129,7 +129,7 @@ public class LevelHeadGui extends GuiScreen {
 
         reg(this.prefixButton = new GuiButton(6, this.width / 2 + 5, calculateHeight(1), 150, 20, "Set Prefix"), button -> changePrefix());
 
-        this.textField = new GuiTextField(0, mc.fontRendererObj, this.width / 2 - 154, calculateHeight(1), 148, 20);
+        this.textField = new GuiTextField(0, mc.fontRenderer, this.width / 2 - 154, calculateHeight(1), 148, 20);
 
         //Color rotate
         reg(this.headerColorButton = new GuiButton(4, this.width / 2 - 155, calculateHeight(5), 150, 20, "Rotate Color"), button -> {
@@ -235,18 +235,18 @@ public class LevelHeadGui extends GuiScreen {
                 try {
                     String encode = URLEncoder.encode(object.toString(), "UTF-8");
                     String url = "https://sk1er.club/user?levelhead_color=" + encode;
-                    ChatComponentText text = new ChatComponentText("Click here to update your custom Levelhead colors");
-                    ChatStyle style = new ChatStyle();
+                    TextComponentString text = new TextComponentString("Click here to update your custom Levelhead colors");
+                    Style style = new Style();
                     style.setBold(true);
-                    style.setColor(EnumChatFormatting.YELLOW);
-                    style.setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
-                    ChatComponentText valueIn = new ChatComponentText("Please be logged in to your Sk1er.club for this to work. Do /levelhead dumpcache after clicking to see new colors!");
-                    ChatStyle style1 = new ChatStyle();
-                    style1.setColor(EnumChatFormatting.RED);
-                    valueIn.setChatStyle(style1);
-                    style.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, valueIn));
-                    text.setChatStyle(style);
-                    Minecraft.getMinecraft().thePlayer.addChatComponentMessage(text);
+                    style.setColor(TextFormatting.YELLOW);
+                    style.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
+                    TextComponentString valueIn = new TextComponentString("Please be logged in to your Sk1er.club for this to work. Do /levelhead dumpcache after clicking to see new colors!");
+                    Style style1 = new Style();
+                    style1.setColor(TextFormatting.RED);
+                    valueIn.setStyle(style1);
+                    style.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, valueIn));
+                    text.setStyle(style);
+                    Minecraft.getMinecraft().player.sendMessage(text);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
@@ -303,7 +303,7 @@ public class LevelHeadGui extends GuiScreen {
         }
 
         for (GuiButton aButtonList : this.buttonList) {
-            aButtonList.drawButton(this.mc, mouseX, mouseY);
+            aButtonList.drawButton(this.mc, mouseX, mouseY, 0);
         }
         lock.unlock();
     }
@@ -362,11 +362,11 @@ public class LevelHeadGui extends GuiScreen {
                     net.minecraftforge.client.event.GuiScreenEvent.ActionPerformedEvent.Pre event = new net.minecraftforge.client.event.GuiScreenEvent.ActionPerformedEvent.Pre(this, guibutton, this.buttonList);
                     if (net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(event))
                         break;
-                    guibutton = event.button;
+                    guibutton = event.getButton();
                     guibutton.playPressSound(this.mc.getSoundHandler());
                     this.actionPerformed(guibutton);
                     if (this.equals(this.mc.currentScreen))
-                        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.GuiScreenEvent.ActionPerformedEvent.Post(this, event.button, this.buttonList));
+                        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.GuiScreenEvent.ActionPerformedEvent.Post(this, event.getButton(), this.buttonList));
                 }
             }
         }
@@ -407,15 +407,15 @@ public class LevelHeadGui extends GuiScreen {
     private void drawTitle() {
         String text = "Sk1er LevelHead v" + Levelhead.VERSION;
 
-        drawCenteredString(mc.fontRendererObj, text, this.width / 2, 5, Color.WHITE.getRGB());
-        drawHorizontalLine(this.width / 2 - mc.fontRendererObj.getStringWidth(text) / 2 - 5, this.width / 2 + mc.fontRendererObj.getStringWidth(text) / 2 + 5, 15, Color.WHITE.getRGB());
-        drawCenteredString(mc.fontRendererObj, ChatColor.YELLOW + "Custom Levelhead Status: " + (isCustom ? ChatColor.GREEN + "Enabled" : ChatColor.RED + "Disabled / Inactive"), this.width / 2,
+        drawCenteredString(mc.fontRenderer, text, this.width / 2, 5, Color.WHITE.getRGB());
+        drawHorizontalLine(this.width / 2 - mc.fontRenderer.getStringWidth(text) / 2 - 5, this.width / 2 + mc.fontRenderer.getStringWidth(text) / 2 + 5, 15, Color.WHITE.getRGB());
+        drawCenteredString(mc.fontRenderer, ChatColor.YELLOW + "Custom Levelhead Status: " + (isCustom ? ChatColor.GREEN + "Enabled" : ChatColor.RED + "Disabled / Inactive"), this.width / 2,
                 20, Color.WHITE.getRGB());
 
     }
 
     private void drawLook() {
-        FontRenderer renderer = mc.fontRendererObj;
+        FontRenderer renderer = mc.fontRenderer;
         if (Levelhead.getInstance().getConfig().isEnabled()) {
             drawCenteredString(renderer, "This is how levels will display", this.width / 2, 30, Color.WHITE.getRGB());
             LevelheadTag levelheadTag = Levelhead.getInstance().buildTag(new JsonHolder(), null);

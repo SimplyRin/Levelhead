@@ -7,29 +7,26 @@ import club.sk1er.mods.levelhead.utils.Sk1erMod;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.server.MinecraftServer;
 
 /**
  * Created by Mitchell Katz on 5/8/2017.
  */
 public class ToggleCommand extends CommandBase {
 
-    @Override
-    public boolean canCommandSenderUseCommand(ICommandSender sender) {
-        return true;
-    }
 
     @Override
-    public String getCommandName() {
+    public String getName() {
         return "levelhead";
     }
 
     @Override
-    public String getCommandUsage(ICommandSender sender) {
-        return "/" + getCommandName();
+    public String getUsage(ICommandSender sender) {
+        return "/" + getName();
     }
 
     @Override
-    public void processCommand(ICommandSender sender, String[] args) throws CommandException {
+    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
         if (args.length == 1) {
             if (args[0].equalsIgnoreCase("limit")) {
                 Sk1erMod.getInstance().sendMessage(ChatColor.RED + "Count: " + Levelhead.getInstance().count);
@@ -52,4 +49,6 @@ public class ToggleCommand extends CommandBase {
         }
         new LevelHeadGui().display();
     }
+
+
 }
