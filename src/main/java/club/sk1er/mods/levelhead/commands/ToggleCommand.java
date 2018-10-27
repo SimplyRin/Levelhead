@@ -50,5 +50,13 @@ public class ToggleCommand extends CommandBase {
         new LevelHeadGui().display();
     }
 
+    @Override
+    public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
+        return true;
+    }
 
+    @Override
+    public int getRequiredPermissionLevel() {
+        return 0;
+    }
 }
