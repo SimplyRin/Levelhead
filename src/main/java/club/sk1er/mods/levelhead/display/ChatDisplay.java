@@ -1,32 +1,35 @@
 package club.sk1er.mods.levelhead.display;
 
+import java.util.ArrayList;
+import java.util.UUID;
+
 import club.sk1er.mods.levelhead.Levelhead;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetworkPlayerInfo;
 
-import java.util.ArrayList;
-import java.util.UUID;
-
 public class ChatDisplay extends LevelheadDisplay {
 
-    public ChatDisplay(DisplayConfig config) {
+	private Levelhead levelhead;
+
+    public ChatDisplay(Levelhead levelhead, DisplayConfig config) {
         super(DisplayPosition.CHAT, config);
+        this.levelhead = levelhead;
     }
 
     @Override
     public void tick() {
-        if (Levelhead.getInstance().getLevelheadPurchaseStates().isChat())
+        if (levelhead.getLevelheadPurchaseStates().isChat())
             for (NetworkPlayerInfo networkPlayerInfo : Minecraft.getMinecraft().getNetHandler().getPlayerInfoMap()) {
                 UUID id = networkPlayerInfo.getGameProfile().getId();
                 if (id != null)
                     if (!cache.containsKey(id))
-                        Levelhead.getInstance().fetch(id, this, false);
+                        levelhead.fetch(id, this, false);
             }
     }
 
     @Override
     public void checkCacheSize() {
-        if (cache.size() > Math.max(Levelhead.getInstance().getDisplayManager().getMasterConfig().getPurgeSize(), 150)) {
+        if (cache.size() > Math.max(levelhead.getDisplayManager().getMasterConfig().getPurgeSize(), 150)) {
             ArrayList<UUID> safePlayers = new ArrayList<>();
             for (NetworkPlayerInfo info : Minecraft.getMinecraft().getNetHandler().getPlayerInfoMap()) {
                 UUID id = info.getGameProfile().getId();

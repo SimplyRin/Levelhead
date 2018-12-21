@@ -1,5 +1,9 @@
 package club.sk1er.mods.levelhead.renderer;
 
+import java.awt.Color;
+
+import org.lwjgl.opengl.GL11;
+
 import club.sk1er.mods.levelhead.Levelhead;
 import club.sk1er.mods.levelhead.display.AboveHeadDisplay;
 import club.sk1er.mods.levelhead.utils.Sk1erMod;
@@ -14,9 +18,6 @@ import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.lwjgl.opengl.GL11;
-
-import java.awt.Color;
 
 /**
  * Created by mitchellkatz
@@ -36,7 +37,7 @@ public class LevelheadAboveHeadRender {
         if (!levelhead.getDisplayManager().getMasterConfig().isEnabled()) {
             return;
         }
-        if ((event.entityPlayer.getUniqueID().equals(Levelhead.getInstance().userUuid) && !levelhead.getDisplayManager().getMasterConfig().isShowSelf()) || !Sk1erMod.getInstance().isHypixel()) {
+        if ((event.entityPlayer.getUniqueID().equals(levelhead.userUuid) && !levelhead.getDisplayManager().getMasterConfig().isShowSelf()) || !Sk1erMod.getInstance().isHypixel()) {
             return;
         }
         EntityPlayer player = event.entityPlayer;
@@ -59,7 +60,7 @@ public class LevelheadAboveHeadRender {
                     if (scoreObjective != null && event.entityPlayer.getDistanceSqToEntity(Minecraft.getMinecraft().thePlayer) < 10 * 10) {
                         offset *= 2;
                     }
-                    if (event.entityPlayer.getUniqueID().equals(Levelhead.getInstance().userUuid))
+                    if (event.entityPlayer.getUniqueID().equals(levelhead.userUuid))
                         offset = 0;
                     renderName(event, levelheadTag, player, event.x, event.y + offset + o * .3D, event.z);
                 }

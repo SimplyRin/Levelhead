@@ -13,6 +13,12 @@ import net.minecraft.command.ICommandSender;
  */
 public class LevelheadCommand extends CommandBase {
 
+	private Levelhead levelhead;
+
+	public LevelheadCommand(Levelhead levelhead) {
+		this.levelhead = levelhead;
+	}
+
     @Override
     public boolean canCommandSenderUseCommand(ICommandSender sender) {
         return true;
@@ -34,21 +40,21 @@ public class LevelheadCommand extends CommandBase {
         if (args.length == 1) {
             Sk1erMod instance = Sk1erMod.getInstance();
             if (args[0].equalsIgnoreCase("limit")) {
-                instance.sendMessage(ChatColor.RED + "Count: " + Levelhead.getInstance().count);
-                instance.sendMessage(ChatColor.RED + "Wait: " + Levelhead.getInstance().wait);
+                instance.sendMessage(ChatColor.RED + "Count: " + levelhead.count);
+                instance.sendMessage(ChatColor.RED + "Wait: " + levelhead.wait);
                 instance.sendMessage(ChatColor.RED + "Hypixel: " + instance.isHypixel());
                 instance.sendMessage(ChatColor.RED + "Remote Status: " + instance.isEnabled());
-                instance.sendMessage(ChatColor.RED + "Local Stats: " + Levelhead.getInstance().getSk1erMod().isHypixel());
+                instance.sendMessage(ChatColor.RED + "Local Stats: " + levelhead.getSk1erMod().isHypixel());
                 instance.sendMessage(ChatColor.RED + "Callback: " + instance.getResponse());
-                instance.sendMessage(ChatColor.RED + "Callback_types: " + Levelhead.getInstance().getTypes());
+                instance.sendMessage(ChatColor.RED + "Callback_types: " + levelhead.getTypes());
                 //TODO add more debug
                 return;
             } else if (args[0].equalsIgnoreCase("dumpcache")) {
-                Levelhead.getInstance().getDisplayManager().clearCache();
+            	levelhead.getDisplayManager().clearCache();
                 instance.sendMessage(ChatColor.RED + "Cleared Cache");
                 return;
             }
         }
-        new NewLevelheadGui().display();
+        new NewLevelheadGui(levelhead).display();
     }
 }

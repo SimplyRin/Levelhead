@@ -1,5 +1,8 @@
 package club.sk1er.mods.levelhead.display;
 
+import java.util.ArrayList;
+import java.util.UUID;
+
 import club.sk1er.mods.levelhead.Levelhead;
 import club.sk1er.mods.levelhead.guis.NewLevelheadGui;
 import net.minecraft.client.Minecraft;
@@ -7,16 +10,14 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.scoreboard.Team;
 
-import java.util.ArrayList;
-import java.util.UUID;
-
 public class AboveHeadDisplay extends LevelheadDisplay {
 
-
+	private Levelhead levelhead;
     boolean bottomValue = true;
 
-    public AboveHeadDisplay(DisplayConfig config) {
+    public AboveHeadDisplay(Levelhead levelhead, DisplayConfig config) {
         super(DisplayPosition.ABOVE_HEAD, config);
+        this.levelhead = levelhead;
     }
 
     public boolean loadOrRender(EntityPlayer player) {
@@ -29,7 +30,7 @@ public class AboveHeadDisplay extends LevelheadDisplay {
             return false;
         if (player.riddenByEntity != null)
             return false;
-        int renderDistance = Levelhead.getInstance().getDisplayManager().getMasterConfig().getRenderDistance();
+        int renderDistance = levelhead.getDisplayManager().getMasterConfig().getRenderDistance();
         int min = Math.min(64 * 64, renderDistance * renderDistance);
         if (player.getDistanceSqToEntity(Minecraft.getMinecraft().thePlayer) > min) {
             return false;
@@ -95,7 +96,7 @@ public class AboveHeadDisplay extends LevelheadDisplay {
             if (loadOrRender(entityPlayer)) {
                 final UUID uuid = entityPlayer.getUniqueID();
                 if (!cache.containsKey(uuid)) {
-                    Levelhead.getInstance().fetch(uuid, this, bottomValue);
+                    levelhead.fetch(uuid, this, bottomValue);
                 }
             }
         }
@@ -111,7 +112,7 @@ public class AboveHeadDisplay extends LevelheadDisplay {
     private int index;
     @Override
     public void checkCacheSize() {
-        int max = Math.max(150, Levelhead.getInstance().getDisplayManager().getMasterConfig().getPurgeSize());
+        int max = Math.max(150, levelhead.getDisplayManager().getMasterConfig().getPurgeSize());
         if(cache.size() > max) {
             ArrayList<UUID> safePlayers = new ArrayList<>();
             for (EntityPlayer player : Minecraft.getMinecraft().theWorld.playerEntities) {

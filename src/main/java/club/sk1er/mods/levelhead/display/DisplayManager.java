@@ -1,19 +1,23 @@
 package club.sk1er.mods.levelhead.display;
 
-import club.sk1er.mods.levelhead.Levelhead;
-import club.sk1er.mods.levelhead.config.MasterConfig;
-import club.sk1er.mods.levelhead.utils.JsonHolder;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+
+import club.sk1er.mods.levelhead.Levelhead;
+import club.sk1er.mods.levelhead.config.MasterConfig;
+import club.sk1er.mods.levelhead.utils.JsonHolder;
+
 public class DisplayManager {
+
+	private Levelhead levelhead;
 
     private Gson GSON = new Gson();
     private List<AboveHeadDisplay> aboveHead = new ArrayList<>();
@@ -22,7 +26,8 @@ public class DisplayManager {
     private MasterConfig config = new MasterConfig();
     private File file;
 
-    public DisplayManager(JsonHolder source, File file) {
+    public DisplayManager(Levelhead levelhead, JsonHolder source, File file) {
+    	this.levelhead = levelhead;
         this.file = file;
         if (source.has("master")) {
             this.config = GSON.fromJson(source.optJsonObject("master").getObject(), MasterConfig.class);
@@ -30,24 +35,24 @@ public class DisplayManager {
             this.config = new MasterConfig();
         }
         for (JsonElement head : source.optJSONArray("head")) {
-            aboveHead.add(new AboveHeadDisplay(GSON.fromJson(head.getAsJsonObject(), DisplayConfig.class)));
+            aboveHead.add(new AboveHeadDisplay(levelhead, GSON.fromJson(head.getAsJsonObject(), DisplayConfig.class)));
         }
         if (source.has("chat")) {
-            this.chat = new ChatDisplay(GSON.fromJson(source.optJsonObject("chat").getObject(), DisplayConfig.class));
+            this.chat = new ChatDisplay(levelhead, GSON.fromJson(source.optJsonObject("chat").getObject(), DisplayConfig.class));
         }
         if (source.has("tab")) {
-            this.tab = new TabDisplay(GSON.fromJson(source.optJsonObject("tab").getObject(), DisplayConfig.class));
+            this.tab = new TabDisplay(levelhead, GSON.fromJson(source.optJsonObject("tab").getObject(), DisplayConfig.class));
         }
         Runtime.getRuntime().addShutdownHook(new Thread(this::save));
 
         if (aboveHead.isEmpty()) {
-            aboveHead.add(new AboveHeadDisplay(new DisplayConfig()));
+            aboveHead.add(new AboveHeadDisplay(levelhead, new DisplayConfig()));
         }
 
         if (tab == null) {
             DisplayConfig config = new DisplayConfig();
             config.setType("QUESTS");
-            tab = new TabDisplay(config);
+            tab = new TabDisplay(levelhead, config);
         }
 
         adjustIndexes();
@@ -55,7 +60,7 @@ public class DisplayManager {
         if (chat == null) {
             DisplayConfig config = new DisplayConfig();
             config.setType("GUILD_NAME");
-            chat = new ChatDisplay(config);
+            chat = new ChatDisplay(levelhead, config);
         }
 
 
@@ -85,7 +90,7 @@ public class DisplayManager {
     }
 
     public void tick() {
-        if (!Levelhead.getInstance().getDisplayManager().getMasterConfig().isEnabled()) {
+        if (!levelhead.getDisplayManager().getMasterConfig().isEnabled()) {
             return;
         }
 

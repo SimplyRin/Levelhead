@@ -25,3 +25,11 @@ out/
 
 # Minecraft Environment
 run/
+
+# Other
+bin/
+.settings/
+.classpath
+.project
+build.bat
+*.launch

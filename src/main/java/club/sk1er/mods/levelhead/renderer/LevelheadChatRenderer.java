@@ -1,5 +1,8 @@
 package club.sk1er.mods.levelhead.renderer;
 
+import java.util.List;
+import java.util.UUID;
+
 import club.sk1er.mods.levelhead.Levelhead;
 import club.sk1er.mods.levelhead.display.DisplayConfig;
 import club.sk1er.mods.levelhead.display.LevelheadDisplay;
@@ -11,9 +14,6 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-
-import java.util.List;
-import java.util.UUID;
 
 public class LevelheadChatRenderer {
 
@@ -36,7 +36,7 @@ public class LevelheadChatRenderer {
         if (!levelhead.getDisplayManager().getMasterConfig().isEnabled()) {
             return;
         }
-        LevelheadDisplay chat = Levelhead.getInstance().getDisplayManager().getChat();
+        LevelheadDisplay chat = levelhead.getDisplayManager().getChat();
         if (chat == null) {
             return;
         }

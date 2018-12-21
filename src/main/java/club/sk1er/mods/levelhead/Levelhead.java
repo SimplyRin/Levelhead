@@ -1,5 +1,23 @@
 package club.sk1er.mods.levelhead;
 
+import java.awt.Color;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
+
 import club.sk1er.mods.levelhead.auth.MojangAuth;
 import club.sk1er.mods.levelhead.commands.LevelheadCommand;
 import club.sk1er.mods.levelhead.display.AboveHeadDisplay;
@@ -14,9 +32,9 @@ import club.sk1er.mods.levelhead.renderer.NullLevelheadTag;
 import club.sk1er.mods.levelhead.utils.JsonHolder;
 import club.sk1er.mods.levelhead.utils.Multithreading;
 import club.sk1er.mods.levelhead.utils.Sk1erMod;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.FMLClientHandler;
@@ -29,20 +47,6 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-
-import java.awt.Color;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
 
 public class Levelhead extends DummyModContainer {
 
@@ -52,7 +56,6 @@ public class Levelhead extends DummyModContainer {
      */
     public static final String MODID = "LEVEL_HEAD";
     public static final String VERSION = "6.0";
-    private static Levelhead instance;
     public UUID userUuid = null;
     public int count = 1;
     public int wait = 60;
@@ -93,10 +96,6 @@ public class Levelhead extends DummyModContainer {
 
     public static int getRGBDarkColor() {
         return Color.HSBtoRGB(System.currentTimeMillis() % 1000L / 1000.0f, 0.8f, 0.2f);
-    }
-
-    public static Levelhead getInstance() {
-        return instance;
     }
 
     public DisplayManager getDisplayManager() {
@@ -145,7 +144,7 @@ public class Levelhead extends DummyModContainer {
         levelheadPurchaseStates.setExtraHead(purchaseStatus.optInt("head"));
         DisplayManager displayManager = getDisplayManager();
         while (displayManager.getAboveHead().size() <= levelheadPurchaseStates.getExtraHead()) {
-            displayManager.getAboveHead().add(new AboveHeadDisplay(new DisplayConfig()));
+            displayManager.getAboveHead().add(new AboveHeadDisplay(this, new DisplayConfig()));
         }
         displayManager.adjustIndexes();
 
@@ -177,7 +176,7 @@ public class Levelhead extends DummyModContainer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        displayManager = new DisplayManager(config, event.getSuggestedConfigurationFile());
+        displayManager = new DisplayManager(this, config, event.getSuggestedConfigurationFile());
         Multithreading.runAsync(this::refreshPurchaseStates);
         Multithreading.runAsync(this::refreshRawPurchases);
         Multithreading.runAsync(this::refreshPaidData);
@@ -187,11 +186,10 @@ public class Levelhead extends DummyModContainer {
     @Subscribe
     @EventHandler
     public void init(FMLPostInitializationEvent event) {
-        instance = this;
         Minecraft minecraft = FMLClientHandler.instance().getClient();
         userUuid = minecraft.getSession().getProfile().getId();
         register(new LevelheadAboveHeadRender(this), this);
-        ClientCommandHandler.instance.registerCommand(new LevelheadCommand());
+        ClientCommandHandler.instance.registerCommand(new LevelheadCommand(this));
         levelheadChatRenderer = new LevelheadChatRenderer(this);
         register(levelheadChatRenderer);
     }
@@ -354,6 +352,54 @@ public class Levelhead extends DummyModContainer {
 
     public Sk1erMod getSk1erMod() {
         return mod;
+    }
+
+    public void drawPingHook(int i, int x, int y, NetworkPlayerInfo playerInfo) {
+        if (!getDisplayManager().getMasterConfig().isEnabled()) {
+            return;
+        }
+        LevelheadDisplay tab = getDisplayManager().getTab();
+        if (tab != null) {
+
+            if (!tab.getConfig().isEnabled()) {
+                return;
+            }
+
+            if (getLevelheadPurchaseStates().isTab()) {
+                String s = tab.getTrueValueCache().get(playerInfo.getGameProfile().getId());
+                if (s != null) {
+                    FontRenderer fontRendererObj = Minecraft.getMinecraft().fontRendererObj;
+                    int x1 = i + x - 12 - fontRendererObj.getStringWidth(s);
+                    DisplayConfig config = tab.getConfig();
+                    if (config.isFooterChroma()) {
+                        fontRendererObj.drawString(s, x1, y, Levelhead.getRGBColor());
+                    } else if (config.isFooterRgb()) {
+                        fontRendererObj.drawString(s, x1, y, new Color(config.getFooterRed(), config.getFooterGreen(), config.getFooterBlue()).getRGB());
+                    } else {
+                        fontRendererObj.drawString(config.getFooterColor() + s, x1, y, Color.WHITE.getRGB());
+                    }
+                }
+            }
+        }
+    }
+
+
+    public int getLevelheadWith(NetworkPlayerInfo playerInfo) {
+        if (!getDisplayManager().getMasterConfig().isEnabled()) {
+            return 0;
+        }
+        LevelheadDisplay tab = getDisplayManager().getTab();
+        if (tab != null) {
+            if (!tab.getConfig().isEnabled())
+                return 0;
+            if (getLevelheadPurchaseStates().isTab()) {
+                String s = tab.getTrueValueCache().get(playerInfo.getGameProfile().getId());
+                if (s != null) {
+                    return Minecraft.getMinecraft().fontRendererObj.getStringWidth(s) + 2;
+                }
+            }
+        }
+        return 0;
     }
 
 }
