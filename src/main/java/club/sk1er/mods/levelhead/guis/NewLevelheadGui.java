@@ -199,7 +199,7 @@ public class NewLevelheadGui extends GuiScreen implements GuiYesNoCallback {
                 tab.getConfig().setEnabled(true);
 
 
-                int totalTabWith = 9 + fontRendererObj.getStringWidth(formattedText) + levelhead.getLevelheadWith(playerInfo) + 15;
+                int totalTabWith = 9 + fontRendererObj.getStringWidth(formattedText) + levelhead.getHooks().getLevelheadWith(playerInfo) + 15;
                 int fakeTabTop = 35;
                 int leftStart = width / 2 - totalTabWith / 2;
                 drawRect(leftStart, fakeTabTop, width / 2 + totalTabWith / 2, fakeTabTop + 8, Integer.MIN_VALUE);
@@ -217,7 +217,7 @@ public class NewLevelheadGui extends GuiScreen implements GuiYesNoCallback {
                     Gui.drawScaledCustomSizeModalRect(leftStart, fakeTabTop, 40.0F, (float) j3, 8, k3, 8, 8, 64.0F, 64.0F);
                 }
                 drawPing(leftStart + totalTabWith, fakeTabTop, playerInfo);
-                levelhead.drawPingHook(0, leftStart + totalTabWith, fakeTabTop, playerInfo);
+                levelhead.getHooks().drawPingHook(0, leftStart + totalTabWith, fakeTabTop, playerInfo);
 
                 if (!levelheadPurchaseStates.isTab()) {
                     String text = "Levelhead tab display not purchased!\nPlease purchase to activate and configure";

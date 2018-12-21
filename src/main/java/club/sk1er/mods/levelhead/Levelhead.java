@@ -24,6 +24,7 @@ import club.sk1er.mods.levelhead.display.AboveHeadDisplay;
 import club.sk1er.mods.levelhead.display.DisplayConfig;
 import club.sk1er.mods.levelhead.display.DisplayManager;
 import club.sk1er.mods.levelhead.display.LevelheadDisplay;
+import club.sk1er.mods.levelhead.forge.transform.Hooks;
 import club.sk1er.mods.levelhead.purchases.LevelheadPurchaseStates;
 import club.sk1er.mods.levelhead.renderer.LevelheadAboveHeadRender;
 import club.sk1er.mods.levelhead.renderer.LevelheadChatRenderer;
@@ -33,8 +34,6 @@ import club.sk1er.mods.levelhead.utils.JsonHolder;
 import club.sk1er.mods.levelhead.utils.Multithreading;
 import club.sk1er.mods.levelhead.utils.Sk1erMod;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.FMLClientHandler;
@@ -48,7 +47,7 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-public class Levelhead extends DummyModContainer {
+public final class Levelhead extends DummyModContainer {
 
 
     /*
@@ -62,6 +61,7 @@ public class Levelhead extends DummyModContainer {
     private long waitUntil = System.currentTimeMillis();
     private int updates = 0;
     private Sk1erMod mod;
+    private Hooks hooks;
 
     private MojangAuth auth;
     private JsonHolder types = new JsonHolder();
@@ -176,6 +176,7 @@ public class Levelhead extends DummyModContainer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        hooks = new Hooks(this);
         displayManager = new DisplayManager(this, config, event.getSuggestedConfigurationFile());
         Multithreading.runAsync(this::refreshPurchaseStates);
         Multithreading.runAsync(this::refreshRawPurchases);
@@ -354,52 +355,8 @@ public class Levelhead extends DummyModContainer {
         return mod;
     }
 
-    public void drawPingHook(int i, int x, int y, NetworkPlayerInfo playerInfo) {
-        if (!getDisplayManager().getMasterConfig().isEnabled()) {
-            return;
-        }
-        LevelheadDisplay tab = getDisplayManager().getTab();
-        if (tab != null) {
-
-            if (!tab.getConfig().isEnabled()) {
-                return;
-            }
-
-            if (getLevelheadPurchaseStates().isTab()) {
-                String s = tab.getTrueValueCache().get(playerInfo.getGameProfile().getId());
-                if (s != null) {
-                    FontRenderer fontRendererObj = Minecraft.getMinecraft().fontRendererObj;
-                    int x1 = i + x - 12 - fontRendererObj.getStringWidth(s);
-                    DisplayConfig config = tab.getConfig();
-                    if (config.isFooterChroma()) {
-                        fontRendererObj.drawString(s, x1, y, Levelhead.getRGBColor());
-                    } else if (config.isFooterRgb()) {
-                        fontRendererObj.drawString(s, x1, y, new Color(config.getFooterRed(), config.getFooterGreen(), config.getFooterBlue()).getRGB());
-                    } else {
-                        fontRendererObj.drawString(config.getFooterColor() + s, x1, y, Color.WHITE.getRGB());
-                    }
-                }
-            }
-        }
-    }
-
-
-    public int getLevelheadWith(NetworkPlayerInfo playerInfo) {
-        if (!getDisplayManager().getMasterConfig().isEnabled()) {
-            return 0;
-        }
-        LevelheadDisplay tab = getDisplayManager().getTab();
-        if (tab != null) {
-            if (!tab.getConfig().isEnabled())
-                return 0;
-            if (getLevelheadPurchaseStates().isTab()) {
-                String s = tab.getTrueValueCache().get(playerInfo.getGameProfile().getId());
-                if (s != null) {
-                    return Minecraft.getMinecraft().fontRendererObj.getStringWidth(s) + 2;
-                }
-            }
-        }
-        return 0;
+    public Hooks getHooks() {
+    	return hooks;
     }
 
 }
